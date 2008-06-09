@@ -4,7 +4,7 @@
 Summary:	Search and navigate IT data
 Name:		splunk
 Version:	3.2.4
-Release:	0.1
+Release:	0.3
 License:	2005-2008 Splunk Inc
 Group:		Applications
 Source0:	http://download.splunk.com/releases/%{version}/linux/%{name}-%{version}-%{subver}-Linux-i686.tgz
@@ -21,6 +21,35 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires:	bzip2
+Requires:	bzip2-libs
+Requires:	expat >= 1:2.0.0
+Requires:	libarchive >= 2.0
+Requires:	libxml2 >= 2.6.31
+Requires:	libxslt
+Requires:	pcre >= 7.6
+Requires:	pcregrep
+Requires:	pcretest
+Requires:	zlib
+#-PyXML-0.8.4.txt
+#-Twisted-2.1.0.txt
+#-TwistedWeb-0.5.0.txt
+#-ZopeInterface-3.0.1.txt
+#-expat-2.0.0.txt
+#-fpconst-0.7.2.txt
+#-gadflyZip.txt
+#-httplib2-0.4.0.txt
+#-libarchive-2.2.5.txt
+#-libxml2-2.6.31.txt
+#-libxslt-1.1.22.txt
+#-log4py-1.3.txt
+#-lxml-1.3.6.txt
+#-lxml-elementtree-1.3.6.txt
+#-openldap-2.3.27.txt
+#-openssl-0.9.8g.txt
+#-pcre-7.6.txt
+#-xmlwrapp-0.5.0.txt
+#pyOpenSSL-0.6.tar.gz
 Provides:	group(splunk)
 Provides:	user(splunk)
 ExclusiveArch:	%{ix86} %{x8664}
@@ -45,14 +74,38 @@ files, network ports or database tables.
 
 rm -f .ftr
 
+# zlib
+%{__rm} lib/libz.so*
+
+# bzip2
+%{__rm} bin/{bunzip2,bzcat,bzcmp,bzdiff,bzegrep,bzfgrep,bzgrep,bzip2,bzip2recover,bzless,bzmore}
+%{__rm} lib/libbz2.so*
+
+# pcre
+%{__rm} bin/{pcretest,pcregrep}
+%{__rm} lib/libpcre.so*
+%{__rm} lib/libpcreposix.so*
+
+# libarchive
+%{__rm} lib/libarchive.so*
+
+# expat
+%{__rm} lib/libexpat.so*
+
+# libxslt
+%{__rm} lib/libexslt.so*
+%{__rm} lib/libxslt.so*
+
+# libxml2
+%{__rm} lib/libxml2.so*
+
 %build
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_appdir}
-cp -a . $RPM_BUILD_ROOT%{_appdir}
-
-rm -f $RPM_BUILD_ROOT%{_appdir}/{README.txt,license.txt,splunk-*-manifest}
+install -d $RPM_BUILD_ROOT{%{_includedir},%{_appdir}}
+cp -a bin etc lib openssl share $RPM_BUILD_ROOT%{_appdir}
+cp -a include/*.h $RPM_BUILD_ROOT%{_includedir}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -70,19 +123,9 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc README.txt license.txt
+%dir %attr(555,splunk,splunk) %{_appdir}
 %dir %attr(555,splunk,splunk) %{_appdir}/bin
 %attr(555,splunk,splunk) %{_appdir}/bin/btool
-%attr(555,splunk,splunk) %{_appdir}/bin/bunzip2
-%attr(555,splunk,splunk) %{_appdir}/bin/bzcat
-%attr(555,splunk,splunk) %{_appdir}/bin/bzcmp
-%attr(555,splunk,splunk) %{_appdir}/bin/bzdiff
-%attr(555,splunk,splunk) %{_appdir}/bin/bzegrep
-%attr(555,splunk,splunk) %{_appdir}/bin/bzfgrep
-%attr(555,splunk,splunk) %{_appdir}/bin/bzgrep
-%attr(555,splunk,splunk) %{_appdir}/bin/bzip2
-%attr(555,splunk,splunk) %{_appdir}/bin/bzip2recover
-%attr(555,splunk,splunk) %{_appdir}/bin/bzless
-%attr(555,splunk,splunk) %{_appdir}/bin/bzmore
 %attr(555,splunk,splunk) %{_appdir}/bin/classify
 %attr(755,splunk,splunk) %{_appdir}/bin/compressedExport.sh
 %attr(555,splunk,splunk) %{_appdir}/bin/dbmanipulator.py
@@ -108,8 +151,6 @@ fi
 %attr(555,splunk,splunk) %{_appdir}/bin/openssl
 %attr(555,splunk,splunk) %{_appdir}/bin/parsetest
 %attr(555,splunk,splunk) %{_appdir}/bin/pcregextest
-%attr(555,splunk,splunk) %{_appdir}/bin/pcregrep
-%attr(555,splunk,splunk) %{_appdir}/bin/pcretest
 %attr(444,splunk,splunk) %{_appdir}/bin/private-terms.txt
 %attr(444,splunk,splunk) %{_appdir}/bin/public-terms.txt
 %attr(555,splunk,splunk) %{_appdir}/bin/python
@@ -467,8 +508,10 @@ fi
 %attr(644,splunk,splunk) %{_appdir}/etc/splunk-free.license
 %attr(644,splunk,splunk) %{_appdir}/etc/splunk-launch.conf.default
 %attr(444,splunk,splunk) %{_appdir}/etc/splunk.version
-%dir %attr(555,splunk,splunk) %{_appdir}/include
-%attr(444,splunk,splunk) %{_appdir}/include/splunk-extplugin.h
+
+# -devel
+%{_includedir}/splunk-extplugin.h
+
 %dir %attr(555,splunk,splunk) %{_appdir}/lib
 %dir %attr(555,splunk,splunk) %{_appdir}/lib/engines
 %attr(555,splunk,splunk) %{_appdir}/lib/engines/lib4758cca.so
@@ -480,43 +523,17 @@ fi
 %attr(555,splunk,splunk) %{_appdir}/lib/engines/libnuron.so
 %attr(555,splunk,splunk) %{_appdir}/lib/engines/libsureware.so
 %attr(555,splunk,splunk) %{_appdir}/lib/engines/libubsec.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libarchive.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libarchive.so.2
-%attr(555,splunk,splunk) %{_appdir}/lib/libarchive.so.2.2.5
-%attr(555,splunk,splunk) %{_appdir}/lib/libbz2.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libbz2.so.1
-%attr(555,splunk,splunk) %{_appdir}/lib/libbz2.so.1.0.3
 %attr(555,splunk,splunk) %{_appdir}/lib/libcrypto.so
 %attr(555,splunk,splunk) %{_appdir}/lib/libcrypto.so.0.9.8
-%attr(555,splunk,splunk) %{_appdir}/lib/libexpat.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libexpat.so.1
-%attr(555,splunk,splunk) %{_appdir}/lib/libexpat.so.1.5.0
-%attr(555,splunk,splunk) %{_appdir}/lib/libexslt.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libexslt.so.0
-%attr(555,splunk,splunk) %{_appdir}/lib/libexslt.so.0.8.13
 %attr(555,splunk,splunk) %{_appdir}/lib/libextcmdapi.so
 %attr(555,splunk,splunk) %{_appdir}/lib/libextcmdapi.so.0
 %attr(555,splunk,splunk) %{_appdir}/lib/libextcmdapi.so.0.0.0
-%attr(555,splunk,splunk) %{_appdir}/lib/libpcre.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libpcre.so.0
-%attr(555,splunk,splunk) %{_appdir}/lib/libpcre.so.0.0.1
-%attr(555,splunk,splunk) %{_appdir}/lib/libpcreposix.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libpcreposix.so.0
-%attr(555,splunk,splunk) %{_appdir}/lib/libpcreposix.so.0.0.0
 %attr(555,splunk,splunk) %{_appdir}/lib/libsqlite3.so
 %attr(555,splunk,splunk) %{_appdir}/lib/libsqlite3.so.0
 %attr(555,splunk,splunk) %{_appdir}/lib/libsqlite3.so.0.8.6
 %attr(555,splunk,splunk) %{_appdir}/lib/libssl.so
 %attr(555,splunk,splunk) %{_appdir}/lib/libssl.so.0.9.8
-%attr(555,splunk,splunk) %{_appdir}/lib/libxml2.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libxml2.so.2
-%attr(555,splunk,splunk) %{_appdir}/lib/libxml2.so.2.6.31
-%attr(555,splunk,splunk) %{_appdir}/lib/libxslt.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libxslt.so.1
-%attr(555,splunk,splunk) %{_appdir}/lib/libxslt.so.1.1.22
-%attr(555,splunk,splunk) %{_appdir}/lib/libz.so
-%attr(555,splunk,splunk) %{_appdir}/lib/libz.so.1
-%attr(555,splunk,splunk) %{_appdir}/lib/libz.so.1.2.3
+
 %dir %attr(555,splunk,splunk) %{_appdir}/lib/python2.5
 %attr(444,splunk,splunk) %{_appdir}/lib/python2.5/BaseHTTPServer.py
 %attr(444,splunk,splunk) %{_appdir}/lib/python2.5/Bastion.py
@@ -1825,6 +1842,7 @@ fi
 %attr(444,splunk,splunk) %{_appdir}/lib/python2.5/xmllib.py
 %attr(444,splunk,splunk) %{_appdir}/lib/python2.5/xmlrpclib.py
 %attr(444,splunk,splunk) %{_appdir}/lib/python2.5/zipfile.py
+
 %dir %attr(555,splunk,splunk) %{_appdir}/openssl
 %dir %attr(555,splunk,splunk) %{_appdir}/openssl/misc
 %attr(555,splunk,splunk) %{_appdir}/openssl/misc/CA.pl
@@ -1834,6 +1852,7 @@ fi
 %attr(555,splunk,splunk) %{_appdir}/openssl/misc/c_issuer
 %attr(555,splunk,splunk) %{_appdir}/openssl/misc/c_name
 %attr(444,splunk,splunk) %{_appdir}/openssl/openssl.cnf
+
 %dir %attr(555,splunk,splunk) %{_appdir}/share
 %dir %attr(555,splunk,splunk) %{_appdir}/share/splunk
 %dir %attr(555,splunk,splunk) %{_appdir}/share/splunk/3rdparty
