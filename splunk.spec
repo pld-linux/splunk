@@ -8,10 +8,10 @@ Release:	0.3
 License:	2005-2008 Splunk Inc
 Group:		Applications
 Source0:	http://download.splunk.com/releases/%{version}/linux/%{name}-%{version}-%{subver}-Linux-i686.tgz
-# Source0-md5:	fd7beed52a2d6047cf781e75f49fd1f5
+# NoSource0-md5:	fd7beed52a2d6047cf781e75f49fd1f5
 NoSource:	0
 Source1:	http://download.splunk.com/releases/%{version}/linux/%{name}-%{version}-%{subver}-Linux-x86_64.tgz
-# Source1-md5:	ad8a078b8a5a45ff5efa4559d7a45a09
+# NoSource1-md5:	ad8a078b8a5a45ff5efa4559d7a45a09
 NoSource:	1
 URL:		http://www.splunk.com/
 BuildRequires:	rpmbuild(macros) >= 1.202
@@ -73,6 +73,8 @@ files, network ports or database tables.
 %endif
 
 rm -f .ftr
+
+mv etc/splunk-launch.conf{.default,}
 
 # zlib
 %{__rm} lib/libz.so*
@@ -506,7 +508,7 @@ fi
 %attr(555,splunk,splunk) %{_appdir}/etc/searchscripts/xmlkv.py
 %attr(555,splunk,splunk) %{_appdir}/etc/searchscripts/xmlunescape.py
 %attr(644,splunk,splunk) %{_appdir}/etc/splunk-free.license
-%attr(644,splunk,splunk) %{_appdir}/etc/splunk-launch.conf.default
+%config(noreplace) %verify(not md5 mtime size) %{_appdir}/etc/splunk-launch.conf
 %attr(444,splunk,splunk) %{_appdir}/etc/splunk.version
 
 # -devel
